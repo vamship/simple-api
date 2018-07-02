@@ -1,0 +1,44 @@
+import _chai from 'chai';
+import _chaiAsPromised from 'chai-as-promised';
+import _chaiHttp from 'chai-http';
+import 'mocha';
+import _sinonChai from 'sinon-chai';
+
+_chai.use(_chaiAsPromised);
+_chai.use(_sinonChai);
+_chai.use(_chaiHttp);
+const { expect, request } = _chai;
+
+import Promise from 'bluebird';
+import {
+    endpoint,
+    getRouteBuilder as _getRouteBuilder
+} from '../utils/api-utils';
+
+describe('[/config routes]', () => {
+    const _buildRoute = _getRouteBuilder('/config');
+
+    describe('GET /config/:key', () => {
+        it('should return the config value for the specified key', () => {
+            const inputs = [
+                { key: 'testValues.foo', expectedValue: 'bar' },
+                { key: 'testValues.abc', expectedValue: 123 }
+            ];
+
+            return Promise.map(inputs, ({ key, expectedValue }) => {
+                const path = _buildRoute(`${key}`);
+                return request(endpoint)
+                    .get(path)
+                    .then((res) => {
+                        expect(res.status).to.equal(200);
+                        expect(res.header['content-type']).to.match(
+                            /^application\/json/
+                        );
+                        expect(res.body).to.deep.equal({
+                            value: expectedValue
+                        });
+                    });
+            });
+        });
+    });
+});

@@ -1,0 +1,36 @@
+{
+  "default": {
+    "app": {
+      "logLevel": "info",
+      "extremeLogging": true,
+      "defaultPort": 3000,
+      "enableTestRoutes": false,
+      "paths": {
+        "health": "/_health",
+        "error": "/_error"
+      }
+    }
+  },
+  "development": {
+    "app": {
+      "logLevel": "trace",
+      "extremeLogging": false
+    }
+  },
+  "test": {
+    "app": {
+      "logLevel": "trace",
+      "extremeLogging": false,
+      "enableTestRoutes": true
+    },
+    "testValues": {
+      "foo": "bar",
+      "abc": 123
+    }
+  },
+  "production": {
+    "app": {
+      "logLevel": "error"
+    }
+  }
+}
