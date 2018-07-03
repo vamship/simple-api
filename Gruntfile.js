@@ -126,22 +126,14 @@ module.exports = function(grunt) {
         logs: null
     });
 
-    const AWS_ECR_REGISTRY = `986433031334.dkr.ecr.us-east-1.amazonaws.com`;
     const packageConfig = grunt.file.readJSON('package.json') || {};
 
     PROJECT.appName = packageConfig.name || '__UNKNOWN__';
     PROJECT.version = packageConfig.version || '__UNKNOWN__';
     PROJECT.unscopedName = PROJECT.appName.replace(/^@[^/]*\//, '');
-
-    if (AWS_ECR_REGISTRY) {
-        PROJECT.dockerTag = `${AWS_ECR_REGISTRY}/${PROJECT.unscopedName}:${
-            PROJECT.version
-        }`;
-    } else {
-        PROJECT.dockerTag = `${PROJECT.appName.replace(/^@/, '')}:${
-            PROJECT.version
-        }`;
-    }
+    PROJECT.dockerTag = `986433031334.dkr.ecr.us-east-1.amazonaws.com/${
+        PROJECT.unscopedName
+    }:${PROJECT.version}`;
 
     // Shorthand references to key folders.
     const SRC = PROJECT.getChild('src');
