@@ -79,6 +79,8 @@ const HELP_TEXT =
 '                       running tests. Useful when development is focused on a   \n' +
 '                       small section of the app, and there is no need to retest \n' +
 '                       all components when runing a watch.                      \n' +
+'   --no-server       : When set to true, does not start a server even if the    \n' +
+'                       grunt operation requires one.                            \n' +
 '                                                                                \n' +
 ' IMPORTANT: Please note that while the grunt file exposes tasks in addition to  \n' +
 ' ---------  the ones listed below (no private tasks in grunt yet :( ), it is    \n' +
@@ -124,10 +126,22 @@ module.exports = function(grunt) {
         logs: null
     });
 
+    const AWS_ECR_REGISTRY = `986433031334.dkr.ecr.us-east-1.amazonaws.com`;
     const packageConfig = grunt.file.readJSON('package.json') || {};
 
     PROJECT.appName = packageConfig.name || '__UNKNOWN__';
     PROJECT.version = packageConfig.version || '__UNKNOWN__';
+    PROJECT.unscopedName = PROJECT.appName.replace(/^@[^/]*\//, '');
+
+    if (AWS_ECR_REGISTRY) {
+        PROJECT.dockerTag = `${AWS_ECR_REGISTRY}/${PROJECT.unscopedName}:${
+            PROJECT.version
+        }`;
+    } else {
+        PROJECT.dockerTag = `${PROJECT.appName.replace(/^@/, '')}:${
+            PROJECT.version
+        }`;
+    }
 
     // Shorthand references to key folders.
     const SRC = PROJECT.getChild('src');
@@ -234,15 +248,16 @@ module.exports = function(grunt) {
         /**
          * Configuration for grunt-shell, which is used to execute:
          * - Build docker images using the docker cli
+         * - Publish docker images to ECR
          */
         shell: {
-            package: {
-                command: () => {
-                    const tag = `${PROJECT.appName}:${PROJECT.version}`;
-                    return `docker build --rm --tag ${tag} ${__dirname} --build-arg APP_NAME=${
-                        PROJECT.appName
-                    }`;
-                }
+            dockerBuild: {
+                command: `docker build --rm --tag ${
+                    PROJECT.dockerTag
+                } ${__dirname} --build-arg APP_NAME=${PROJECT.unscopedName}`
+            },
+            dockerPublish: {
+                command: `docker push ${PROJECT.dockerTag}`
             }
         },
 
@@ -463,7 +478,12 @@ module.exports = function(grunt) {
      * Packaging task - packages the application for release by building a
      * docker container.
      */
-    grunt.registerTask('package', ['shell:package']);
+    grunt.registerTask('package', ['shell:dockerBuild']);
+
+    /**
+     * Publish task - publishes an packaged image to the docker registry.
+     */
+    grunt.registerTask('publish', ['shell:dockerPublish']);
 
     /**
      * Pre check in task. Intended to be run prior to commiting/pushing code.
@@ -474,6 +494,7 @@ module.exports = function(grunt) {
      *  - Cleaning up temporary files
      */
     grunt.registerTask('all', [
+        'clean',
         'format',
         'lint',
         'build',
