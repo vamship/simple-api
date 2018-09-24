@@ -1,6 +1,6 @@
 {
     "name": "@vamship/simple-api",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Simple API server intended for evaluation of orchestration services",
     "main": "dist/index.js",
     "scripts": {
