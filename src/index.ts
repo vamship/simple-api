@@ -6,7 +6,7 @@ import loggerProvider from '@vamship/logger';
 import express from 'express';
 
 const config = configProvider
-    .configure('simple-api')
+    .configure('simpleApi')
     .setApplicationScope(process.env.NODE_ENV)
     .getConfig();
 
